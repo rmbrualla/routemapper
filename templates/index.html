@@ -1,0 +1,85 @@
+<link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}"
+<head><script src="https://code.jquery.com/jquery-1.12.4.min.js"></script></head>
+<div id="app">
+{% block content %}
+    <div class="container">
+      <form class="boxed"  role="form">
+        <input type="hidden" id="lat" name="lat" value="3487">
+        <input type="hidden" id="lng" name="lng" value="3487">
+        <input type="hidden" id="element" name="element" value="3487">
+        <input type="hidden" id="params" name="params" value="3487">
+        <input type="radio" id="trail" name="action" value="label:trail" checked>
+        <label for="trail">TRAIL</label>
+        <input type="radio" id="offtrail" name="action" value="label:offtrail">
+        <label for="offtrail">OFFTRAIL</label>
+        <input type="radio" id="bush" name="action" value="label:bush">
+        <label for="bush">BUSH</label>
+        <input type="radio" id="road" name="action" value="label:road">
+        <label for="road">ROAD</label>
+        <input type="radio" id="paddle" name="action" value="label:paddle">
+        <label for="paddle">PADDLE</label>
+        <input type="radio" id="crossing" name="action" value="label:crossing">
+        <label for="crossing">CROSSING</label>
+        <input type="radio" id="float" name="action" value="float">
+        <label for="float">FLOAT</label>
+        <div style="width: 10px; display:inline-block;"></div>
+        <input type="radio" id="split" name="action" value="split">
+        <label for="split">SPLIT</label>
+        <input type="radio" id="remove" name="action" value="remove">
+        <label for="remove">DEL</label>
+        <input type="radio" id="info" name="action" value="info">
+        <label for="info">INFO</label>
+        <input type="radio" id="create_route" name="action" value="create_route" class="button">
+        <label for="create_route">ADD</label>
+        <input type="radio" id="edit" name="action" value="edit">
+        <label for="edit">EDIT</label>
+        <input type="radio" id="simplify" name="action" value="simplify">
+        <label for="simplify">SIMPL</label>
+        <div style="width: 10px; display:inline-block;"></div>
+        <input type="text" id="label_name" name="label_name" value="primary" size=10>
+        <input type="radio" id="add_label" name="action" value="add_label">
+        <label for="add_label">LABEL</label>
+        <input type="radio" id="remove_label" name="action" value="remove_label">
+        <label for="remove_label"><strike>LABEL</strike></label>
+        <input type="radio" id="stats" name="action" value="stats" class="button">
+        <label for="stats">STATS</label>
+        <div style="width: 10px; display:inline-block;"></div>
+        <input type="text" id="filename" name="filename" value="alaska_v2.kml" size=13>
+        <input type="radio" id="save" name="action" value="save" class="button">
+        <label for="save">SAVE</label>
+
+      </form>   
+    </div>  
+{% endblock %}
+
+<script>
+$("input.button").change(function() {
+  if(this.checked) {
+    console.log($('form').serialize());
+    $(this).prop('checked', false)
+
+    $.ajax({
+        url: '/' + this.id,
+        data: $('form').serialize(),
+        type: 'POST',
+        success: function(response){
+          console.log(response);
+          response_dict = JSON.parse(response);
+          console.log(response_dict);
+          if ("js_code" in response_dict) {
+            eval(response_dict["js_code"]);
+          }
+        },
+        error: function(error){
+          console.log(error);
+        }
+      }
+    );
+  }
+});
+
+</script>
+
+{% include 'map.html' %}
+
+</div>

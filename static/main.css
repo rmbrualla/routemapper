@@ -1,0 +1,43 @@
+@import url('https://fonts.googleapis.com/css?family=Poppins:100,100i,200,200i,300,300i,400,400i,500,500i,600,600i,700,700i,800,800i,900,900i&subset=devanagari,latin-ext');
+
+.boxed label {
+  font-family: 'Poppins', sans-serif;
+  display: inline-block;
+  /* width: 100px; */
+  padding: 2px;
+  border: solid 2px #ccc;
+  transition: all 0.3s;
+  font-size: 10px;
+	line-height: 13px;
+	color: var(--white);
+	letter-spacing: 1px;
+} 
+
+.boxed label[for="trail"] {
+    background-color: #FFC900 ;
+}
+.boxed label[for="road"] {
+  background-color: #6E7271 ;
+}
+.boxed label[for="offtrail"] {
+  background-color: #FF6200 ;
+}
+.boxed label[for="bush"] {
+  background-color: #7AD915 ;
+}
+.boxed label[for="paddle"] {
+  background-color: #0479FF ;
+}
+.boxed label[for="crossing"] {
+  background-color: #5726C2 ;
+}
+.boxed label[for="float"] {
+  background-color: #00DAE1 ;
+}
+.boxed input[type="radio"] {
+  display: none;
+}
+.boxed input[type="radio"]:checked + label {
+  border: solid 2px green;
+}
+
