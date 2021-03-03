@@ -116,6 +116,14 @@ def stats():
   route_map.stats(request.form['label_name'])  
   return maybe_return_js_code()
 
+@map_app.route('/update_info', methods=['POST'])
+def update_info():
+  route_map.update_info(
+    request.form['route_name'],
+    request.form['name'],
+    request.form['description'],
+    request.form['labels'])
+  return maybe_return_js_code()
 
 
 
@@ -141,6 +149,7 @@ def main(argv):
   elif FLAGS.input_kml:
     routes = kml_parser.parse_kml(FLAGS.input_kml)
     for r in routes:
+      r = r.simplify(1.0)
       for activity_type, color in route.activity_color.items():
         if color == r.line_style.color:
           r.activity_type = activity_type

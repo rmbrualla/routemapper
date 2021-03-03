@@ -64,10 +64,10 @@ class Route:
     return gpxpy.geo.length_2d(locs)
     
     
-  def simplify(self):
+  def simplify(self, max_distance=5.0):
     r = copy.deepcopy(self)
     locs = [gpxpy.geo.Location(p.lat, p.lng) for p in self.points]
-    new_locs = gpxpy.geo.simplify_polyline(locs, max_distance=5.)
+    new_locs = gpxpy.geo.simplify_polyline(locs, max_distance=max_distance)
     
     print(len(locs), len(new_locs))
     r.points = [LatLng(l.latitude, l.longitude) for l in new_locs]
@@ -273,9 +273,7 @@ C.{self._draw.get_name()}._toolbars['draw']._modes['polyline'].button.click();
 
   def end_create_route(self, latlngs):
     r = Route(name='noname', points=[LatLng(p['lat'], p['lng']) for p in latlngs], description='')
-    print(r)
     route_name = self.add_route(r)
-    print(route_name)
     self._js_commands += f"""
 console.log("{route_name}");
 {route_name}.redraw();
@@ -307,13 +305,62 @@ current_route_name = "{route_name}";
     length_in_m = r.length()
     length_str = f'{length_in_m/1000.0:.1f} km / {length_in_m*0.000621371:.1f} mi'
     labels_str = ' '.join(f'#{l}' for l in r.labels)
+    print(description)
+    content = f"""
+<form class="boxed"  role="form" id="popup-form">
+<input type="hidden" id="element" name="route_name" value="{route_name}">
+<p><b>Name:</b> <input type="text" id="name" name="name" value="{html.escape(r.name)}" size=50><br>
+<b>Description:</b> <textarea id="description" name="description" cols="50" rows="10">{html.escape(description)}</textarea>
+<br>
+<b>Labels:</b> <input type="text" id="labels" name="labels" value="{html.escape(labels_str)}" size=50><br>
+<b>Length:</b> {html.escape(length_str)}<br>
+<b>Activity:</b> {r.activity_type} <br>
+<span id="popup-edit">Edit</span>
+</p>
+</form>
+"""
+
+    # Prevents newlines in textarea.
+    content = content.encode("unicode_escape").decode("utf-8")
     self._js_commands += f"""
 var popup = L.popup()
     .setLatLng({{lat: {latlng.lat}, lng: {latlng.lng}}})
-    .setContent('<p><b>Name:</b> {html.escape(r.name)}<br /><b>Description:</b> {html.escape(description)}<br><b>Labels:</b> {html.escape(labels_str)}<br><b>Length:</b> {html.escape(length_str)}<br><b>Activity:</b> {r.activity_type} </p>')
+    .setContent('{content}')
     .openOn({self._map.get_name()});
+$("#popup-edit").on("click", function(e) {{    
+  console.log($('form').serialize());
+  $.ajax({{
+       url: '/update_info',
+       data: $('form').serialize(),
+       type: 'POST',
+       success: function(response){{
+         console.log(response);
+         response_dict = JSON.parse(response);
+         console.log(response_dict);
+         if ("js_code" in response_dict) {{
+           eval(response_dict["js_code"]);
+         }}
+       }},
+       error: function(error){{
+         console.log(error);
+       }}
+     }}
+   );
+}});
+
 """
+    
     return
+
+  def update_info(self, route_name, name, description, labels):
+    r = self._route_dict[route_name]
+    r.name = html.unescape(name)
+    r.description = html.unescape(description)
+    print("\"" + r.description + "\"")
+    r.labels = [l.strip()[1:] for l in labels.split(',')]
+    print(route_name, name, description, labels)
+    return
+
 
   def stats(self, labels):
     labels = [l.strip() for l in labels.split(',')]
