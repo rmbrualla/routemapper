@@ -34,6 +34,9 @@
 .boxed label[for="float"] {
   background-color: #00DAE1 ;
 }
+.boxed label[for="rapid"] {
+  background-color: #F42410 ;
+}
 .boxed input[type="radio"] {
   display: none;
 }

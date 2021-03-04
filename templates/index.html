@@ -22,6 +22,8 @@
         <label for="crossing">CROSSING</label>
         <input type="radio" id="float" name="action" value="label:float">
         <label for="float">FLOAT</label>
+        <input type="radio" id="rapid" name="action" value="label:rapid">
+        <label for="rapid">RAPID</label>
         <div style="width: 10px; display:inline-block;"></div>
         <input type="radio" id="split" name="action" value="split">
         <label for="split">SPLIT</label>
@@ -44,7 +46,6 @@
         <input type="radio" id="stats" name="action" value="stats" class="button">
         <label for="stats">STATS</label>
         <div style="width: 10px; display:inline-block;"></div>
-	<br>
         <input type="text" id="message" name="message" value="Commit description" size=40>
         <input type="radio" id="commit" name="action" value="commit" class="button">
         <label for="commit">COMMIT</label>
@@ -81,7 +82,6 @@ $("input.button").change(function() {
           if ("js_code" in response_dict) {
             eval(response_dict["js_code"]);
           }
-          console.log($(this));
           input_radio.prop('checked', false)  
         },
         error: function(error){

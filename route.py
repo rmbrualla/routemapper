@@ -134,6 +134,7 @@ activity_color = {
   "paddle": "0479FF",
   "crossing": "5726C2",
   "float": "00DAE1",
+  "rapid": "F42410",
 }
 
 
