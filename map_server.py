@@ -116,6 +116,11 @@ def stats():
   route_map.stats(request.form['label_name'])  
   return maybe_return_js_code()
 
+@map_app.route('/wayback', methods=['POST'])
+def wayback():
+  route_map.wayback()  
+  return maybe_return_js_code()
+
 @map_app.route('/update_info', methods=['POST'])
 def update_info():
   route_map.update_info(
@@ -124,6 +129,8 @@ def update_info():
     request.form['description'],
     request.form['labels'])
   return maybe_return_js_code()
+
+
 
 
 
