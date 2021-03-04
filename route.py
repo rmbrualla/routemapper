@@ -69,7 +69,6 @@ class Route:
     locs = [gpxpy.geo.Location(p.lat, p.lng) for p in self.points]
     new_locs = gpxpy.geo.simplify_polyline(locs, max_distance=max_distance)
     
-    print(len(locs), len(new_locs))
     r.points = [LatLng(l.latitude, l.longitude) for l in new_locs]
     return r
 
@@ -408,7 +407,6 @@ var popup = C.L.popup()
     return
 
   def save(self, filename):
-    print('save to filename', filename)
     if os.path.exists(filename):
       pass
       # self._js_commands += f"alert('File {filename} already exists, change filename.');"

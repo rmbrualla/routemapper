@@ -17,6 +17,7 @@ import dataclasses
 import route
 import utils
 import kml_parser
+import os
 
 FLAGS = flags.FLAGS
 
@@ -131,6 +132,21 @@ def update_info():
   return maybe_return_js_code()
 
 
+@map_app.route('/commit', methods=['POST'])
+def commit():
+  route_map.save(FLAGS.input_kml)
+  cmd = f"git reset; git add {FLAGS.input_kml}; git commit -m \"[track update] {request.form['message']}\""
+  os.system(cmd)
+  return maybe_return_js_code()
+
+@map_app.route('/push', methods=['POST'])
+def push():
+  cmd = f"git push"
+  os.system(cmd)
+  return maybe_return_js_code()
+
+
+
 
 
 
@@ -156,7 +172,7 @@ def main(argv):
   elif FLAGS.input_kml:
     routes = kml_parser.parse_kml(FLAGS.input_kml)
     for r in routes:
-      r = r.simplify(1.0)
+      # r = r.simplify(1.0)
       for activity_type, color in route.activity_color.items():
         if color == r.line_style.color:
           r.activity_type = activity_type
