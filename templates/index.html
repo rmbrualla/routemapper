@@ -66,7 +66,8 @@
 $("input.button").change(function() {
   if(this.checked) {
     console.log($('form').serialize());
-    $(this).prop('checked', false)
+    $(this).prop('checked', true)
+    input_radio = $(this)
 
     $.ajax({
         url: '/' + this.id,
@@ -79,9 +80,12 @@ $("input.button").change(function() {
           if ("js_code" in response_dict) {
             eval(response_dict["js_code"]);
           }
+          console.log($(this));
+          input_radio.prop('checked', false)  
         },
         error: function(error){
           console.log(error);
+          input_radio.prop('checked', false)
         }
       }
     );
