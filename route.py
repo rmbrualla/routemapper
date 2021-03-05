@@ -154,6 +154,8 @@ class RouteMap:
     folium.TileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', attr='ESRI', name="ESRI Topo").add_to(self._map)
     folium.TileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', attr='OpenTopo', name="OpenTopo").add_to(self._map)
     folium.TileLayer('https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}', attr='USGS', name="USGS Topo").add_to(self._map)
+    folium.TileLayer('http://caltopo.s3.amazonaws.com/topo/{z}/{x}/{y}.png?v=1', attr='Caltopo', name="CaltopoFS").add_to(self._map)
+
 
     # folium.TileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', attr='ArcGIS', name='Topo Map').add_to(self._map)
 
