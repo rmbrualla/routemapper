@@ -188,6 +188,7 @@ def main(argv):
     routes = kml_parser.parse_kml(FLAGS.input_kml)
     for r in routes:
       r = r.simplify(1.0)
+      r.line_style.width = max(r.line_style.width, 5.0)
       for activity_type, color in route.activity_color.items():
         if color == r.line_style.color:
           r.activity_type = activity_type

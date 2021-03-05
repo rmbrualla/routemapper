@@ -151,8 +151,10 @@ class RouteMap:
     # self._map.default_js.append(("draw", "https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"))
     # self._map.default_css.append(("draw", "https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"))
     folium.TileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', attr='ArcGIS', name='World_Imagery').add_to(self._map)
+    folium.TileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', attr='ESRI', name="ESRI Topo").add_to(self._map)
     folium.TileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', attr='OpenTopo', name="OpenTopo").add_to(self._map)
     folium.TileLayer('https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}', attr='USGS', name="USGS Topo").add_to(self._map)
+
     # folium.TileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', attr='ArcGIS', name='Topo Map').add_to(self._map)
 
     folium.LayerControl(collapsed=False).add_to(self._map)
