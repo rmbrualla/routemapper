@@ -110,17 +110,17 @@ $.ajax({
 
   end_marker_nodes.append(folium.vector_layers.CircleMarker(
       location=points[-1], radius=9, color='white', weight=1,
-      fill_color='red', fill_opacity=1).add_to(segment_node))
+      fill_color='red', fill_opacity=1, classNaMe="marker").add_to(segment_node))
   end_marker_nodes.append(folium.RegularPolygonMarker(
       location=points[-1], fill_color='white', fill_opacity=1, color='white', 
-      number_of_sides=4, radius=3, rotation=45).add_to(segment_node))
+      number_of_sides=4, radius=3, rotation=45, classNaMe="marker").add_to(segment_node))
 
   start_marker_nodes.append(folium.vector_layers.CircleMarker(
     location=points[0], radius=9, color='white',
-    weight=1, fill_color='green', fill_opacity=1).add_to(segment_node))
+    weight=1, fill_color='green', fill_opacity=1, classNaMe="marker").add_to(segment_node))
   start_marker_nodes.append(folium.RegularPolygonMarker(
     location=points[0], fill_color='white', fill_opacity=1, 
-    color='white', number_of_sides=3, radius=3, rotation=0).add_to(segment_node))
+    color='white', number_of_sides=3, radius=3, rotation=0, classNaMe="marker").add_to(segment_node))
   return types.SimpleNamespace(segment_node=segment_node,
                                polyline=polyline,
                                end_marker_nodes=end_marker_nodes,

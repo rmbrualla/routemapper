@@ -145,6 +145,21 @@ def push():
   os.system(cmd)
   return maybe_return_js_code()
 
+markers_visible = True
+@map_app.route('/toggle_marker_visibility', methods=['POST'])
+def toggle_marker_visibility():
+  global markers_visible
+  markers_visible = not markers_visible
+  visibility_str = "visible" if markers_visible else "hidden"
+  route_map._js_commands += f"""
+C = $('iframe')[0].contentWindow;
+C.$("path[fill!=\\"none\\"]").attr('visibility', '{visibility_str}');
+"""
+  return maybe_return_js_code()
+
+
+  return maybe_return_js_code()
+
 
 
 
@@ -172,7 +187,7 @@ def main(argv):
   elif FLAGS.input_kml:
     routes = kml_parser.parse_kml(FLAGS.input_kml)
     for r in routes:
-      # r = r.simplify(1.0)
+      r = r.simplify(1.0)
       for activity_type, color in route.activity_color.items():
         if color == r.line_style.color:
           r.activity_type = activity_type
