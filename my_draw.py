@@ -48,6 +48,15 @@ class Draw(JSCSSMixin, MacroElement):
               draw: {{ this.draw_options|tojson }},
               edit: {{ this.edit_options|tojson }},
             }
+            console.log({{ this.edit_options|tojson }});
+            console.log(options)
+            options.edit.poly.icon = new L.DivIcon({
+            iconSize: new L.Point(16, 16),
+            className: 'leaflet-div-icon leaflet-editing-icon my-own-class'
+            })
+
+            console.log(options)
+
             // FeatureGroup is to store editable layers.
             var drawnItems = new L.featureGroup().addTo(
                 {{ this._parent.get_name() }}
