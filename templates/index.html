@@ -66,6 +66,12 @@
 
         
       </form>   
+      <form id="upload_file_form" method="post" enctype="multipart/form-data" class="boxed">
+        <input name="uploaded_kml_route" type="file">
+        <input type="radio" id="upload_file" name="action" value="upload_file" class="upload_file_button">
+        <label for="upload_file">UPLOAD</label>
+    </form>
+    
     </div>  
 {% endblock %}
 
@@ -83,9 +89,8 @@ $("input.button").change(function() {
         success: function(response){
           console.log(response);
           response_dict = JSON.parse(response);
-          console.log(response_dict);
           if ("js_code" in response_dict) {
-            eval(response_dict["js_code"]);
+            evalInScope(response_dict["js_code"], $('iframe')[0].contentWindow);
           }
           input_radio.prop('checked', false)  
         },
@@ -95,6 +100,41 @@ $("input.button").change(function() {
         }
       }
     );
+  }
+});
+
+function evalInScope(js, contextAsScope) {
+    //# Return the results of the in-line anonymous function we .call with the passed context
+    return function() { with(this) { return eval(js); }; }.call(contextAsScope);
+}
+
+
+$("input.upload_file_button").change(function() {
+  if(this.checked) {
+    $(this).prop('checked', true)
+    input_radio = $(this)
+
+    var form_data = new FormData($('#upload_file_form')[0]);
+    $.ajax({
+      type: 'POST',
+      url: '/upload_route',
+      data: form_data,
+      contentType: false,
+      cache: false,
+      processData: false,
+      success: function(response) {
+        console.log('Success!');
+        response_dict = JSON.parse(response);
+        if ("js_code" in response_dict) {
+          evalInScope(response_dict["js_code"], $('iframe')[0].contentWindow);
+        }
+        input_radio.prop('checked', false)  
+      },
+      error: function(error){
+        console.log(error);
+        input_radio.prop('checked', false)
+      }
+    });
   }
 });
 

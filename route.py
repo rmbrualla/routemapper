@@ -274,7 +274,12 @@ class RouteMap:
     
   def create_route(self):
     self._js_commands += f"""
-C = $('iframe')[0].contentWindow;
+var iframe_selector = $('iframe')
+if (iframe_selector.length == 0) {{
+  C = window;
+}} else {{
+  C = iframe_selector.contentWindow;
+}}
 C.{self._draw.get_name()}._toolbars['draw']._modes['polyline'].button.click();
 """
 
