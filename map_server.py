@@ -145,6 +145,12 @@ def push():
   os.system(cmd)
   return maybe_return_js_code()
 
+@map_app.route('/pull', methods=['POST'])
+def pull():
+  cmd = f"git pull"
+  os.system(cmd)
+  return maybe_return_js_code()
+
 markers_visible = True
 @map_app.route('/toggle_marker_visibility', methods=['POST'])
 def toggle_marker_visibility():
@@ -156,13 +162,6 @@ C = $('iframe')[0].contentWindow;
 C.$("path[fill!=\\"none\\"]").attr('visibility', '{visibility_str}');
 """
   return maybe_return_js_code()
-
-
-  return maybe_return_js_code()
-
-
-
-
 
 
 def main(argv):
