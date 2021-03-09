@@ -376,8 +376,7 @@ $("#popup-edit").on("click", function(e) {{
 
   def wayback(self):
     self._js_commands += f"""
-C = $('iframe')[0].contentWindow;
-bounds = C.{self._map.get_name()}.getBounds();
+bounds = {self._map.get_name()}.getBounds();
 window.open("https://livingatlas.arcgis.com/wayback/?ext="+bounds.getWest()+","+bounds.getNorth()+","+bounds.getEast()+","+bounds.getSouth());
 """
 
