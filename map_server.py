@@ -81,7 +81,7 @@ def end_create_route():
 
 @map_app.route('/save', methods=['POST'])
 def save():
-  route_map.save(request.form['filename'])
+  route_map.save(request.form['filename'], request.form['label_name'])
   return maybe_return_js_code()
 
 @map_app.route('/info', methods=['POST'])

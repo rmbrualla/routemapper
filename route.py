@@ -147,7 +147,7 @@ class RouteMap:
     self._create_map()
     
   def _create_map(self):
-    self._map = folium.Map(tiles=None, zoom_control=False, width="100%", height="75%",control_scale = True)
+    self._map = folium.Map(tiles=None, zoom_control=False, width="100%", height=700,control_scale = True, zoomDelta=0.5)
     # self._map.default_js.append(("draw", "https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"))
     # self._map.default_css.append(("draw", "https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"))
     folium.TileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', attr='ArcGIS', name='World_Imagery').add_to(self._map)
@@ -226,6 +226,7 @@ class RouteMap:
     r.activity_type = activity_type
     r.line_style.color = activity_color[activity_type]
     self._js_commands += f"{route_name}.setStyle({{color: '#{r.line_style.color}'}});\n"
+
     
   def add_label(self, route_name, labels):
     r = self._route_dict[route_name]
@@ -405,26 +406,36 @@ window.open("https://livingatlas.arcgis.com/wayback/?ext="+bounds.getWest()+","+
       summary_str += f"<b>{html.escape(activity)}</b>: {length_m/1000.0:.1f} km / {length_m*0.000621371:.1f} mi / {num_segments} segments <br>"
     labels_str = ' '.join(f'#{l}' for l in labels)
     self._js_commands += f"""
-C = $('iframe')[0].contentWindow;
-map = C.{self._map.get_name()};
+map = {self._map.get_name()};
 bounds = map.getBounds();
 latlng = {{lat: 0.5 * (bounds.getSouth() + bounds.getNorth()), lng: 0.5 * (bounds.getWest() + bounds.getEast())}};
-var popup = C.L.popup()
+var popup = L.popup()
     .setLatLng(latlng)
     .setContent('<p><h3>Stats</h3><b>Labels:</b> {html.escape(labels_str)}<br/>{summary_str}</p>')
-    .openOn(C.{self._map.get_name()});
+    .openOn({self._map.get_name()});
 """
     return
 
-  def save(self, filename):
-    if os.path.exists(filename):
-      pass
+  def save(self, filename, selected_labels_str=''):
+    # if os.path.exists(filename):
+    #   pass
       # self._js_commands += f"alert('File {filename} already exists, change filename.');"
       # return
+    def label_str_to_labels(label_str):
+      labels = [label.strip() for label in label_str.split(',') if label.strip()]
+      return labels
+    selected_labels = label_str_to_labels(selected_labels_str)
+
     def _color_to_kml_color(color):
       return f'#ff{color[-2:]}{color[2:4]}{color[0:2]}'
     kml = simplekml.Kml()
     for r in self._route_dict.values():
+      skip = False
+      for label in selected_labels:
+        if label not in r.labels:
+          skip = True
+      if skip:
+        continue
       coords = [(c[1], c[0]) for c in r.points_as_list()]
       name = r.name + ' #'.join([''] + list(r.labels))
       line = kml.newlinestring(name=name, coords=coords, description=r.description)
