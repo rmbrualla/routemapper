@@ -44,6 +44,7 @@ def maybe_return_js_code():
 
 @map_app.route('/')
 def index():
+  # reload_data()
   return render_template('index.html')
 
 @map_app.route('/label', methods=['POST'])
@@ -196,8 +197,7 @@ def import_route(r, static=False):
     r.name = name
   route_map.add_route(r, static=static)
 
-
-def main(argv):
+def reload_data():
   if FLAGS.input_gpx:
     gpx = load_gpx(FLAGS.input_gpx)
     for r in gpx.routes:
@@ -241,6 +241,8 @@ def main(argv):
   with open('templates/map.html', 'w') as f:
     f.write(route_map.map()._repr_html_()) 
 
+def main(argv):
+  reload_data()
   map_app.run(debug=True)
 
 

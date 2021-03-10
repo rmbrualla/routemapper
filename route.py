@@ -147,7 +147,7 @@ class RouteMap:
     self._create_map()
     
   def _create_map(self):
-    self._map = folium.Map(tiles=None, zoom_control=False, width="100%", height=700,control_scale = True, zoomDelta=0.5)
+    self._map = folium.Map(tiles=None, zoom_control=False, width="100%", height=600,control_scale = True, zoomDelta=0.1)
     # self._map.default_js.append(("draw", "https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"))
     # self._map.default_css.append(("draw", "https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"))
     folium.TileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', attr='ArcGIS', name='World_Imagery').add_to(self._map)
@@ -216,6 +216,7 @@ class RouteMap:
     return self._map
 
   def remove_route(self, route_name):
+    print('remove ', route_name)
     segment_node = self._route_nodes_dict[route_name].segment_node
     self._js_commands += f"{self._map.get_name()}.removeLayer({segment_node.get_name()});\n"
     del self._route_dict[route_name]
