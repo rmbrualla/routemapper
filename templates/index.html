@@ -3,7 +3,7 @@
 <div id="app">
 {% block content %}
     <div class="container">
-      <form class="boxed"  role="form">
+      <form id="upload_file_form" class="boxed"  role="form" enctype="multipart/form-data">
         <input type="hidden" id="lat" name="lat" value="3487">
         <input type="hidden" id="lng" name="lng" value="3487">
         <input type="hidden" id="element" name="element" value="3487">
@@ -63,10 +63,8 @@
         <div style="width: 10px; display:inline-block;"></div>
         <input type="radio" id="toggle_marker_visibility" name="action" value="toggle_marker_visibility" class="button">
         <label for="toggle_marker_visibility">MARKERS</label>
-
-        
-      </form>   
-      <form id="upload_file_form" method="post" enctype="multipart/form-data" class="boxed">
+      <!-- </form>   
+      <form id="upload_file_form" method="post" enctype="multipart/form-data" class="boxed"> -->
         <input name="uploaded_kml_route" type="file">
         <input type="radio" id="upload_file" name="action" value="upload_file" class="upload_file_button">
         <label for="upload_file">UPLOAD</label>

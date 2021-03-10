@@ -314,6 +314,7 @@ current_route_name = "{route_name}";
 
   
   def info(self, route_name, latlng):
+    print('num tracks: ', len(self._route_dict))
     r = self._route_dict[route_name]
     description = r.description if r.description else ''
     length_in_m = r.length()

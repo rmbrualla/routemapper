@@ -44,7 +44,7 @@ def maybe_return_js_code():
 
 @map_app.route('/')
 def index():
-  # reload_data()
+  reload_data()
   return render_template('index.html')
 
 @map_app.route('/label', methods=['POST'])
@@ -189,15 +189,19 @@ def import_route(r, static=False):
   r.labels = []
   for name_token in r.name.split():
     if len(name_token) >= 2 and name_token[0] == '#':
-      r.labels.append(name_token[1:])
+      label = name_token[1:]
+      if label not in r.labels:
+        r.labels.append(label)
   if r.labels:
     name = r.name
     for l in r.labels:
-      name.replace(f' #{l}', '')
+      name = name.replace(f' #{l}', '')
     r.name = name
   route_map.add_route(r, static=static)
 
 def reload_data():
+  global route_map
+  route_map = route.RouteMap()
   if FLAGS.input_gpx:
     gpx = load_gpx(FLAGS.input_gpx)
     for r in gpx.routes:
@@ -220,21 +224,6 @@ def reload_data():
     routes = kml_parser.parse_kml(FLAGS.input_kml)
     for r in routes:
       import_route(r, static=True)
-      # r = r.simplify(1.0)
-      # r.line_style.width = max(r.line_style.width, 5.0)
-      # for activity_type, color in route.activity_color.items():
-      #   if color == r.line_style.color:
-      #     r.activity_type = activity_type
-      # r.labels = []
-      # for name_token in r.name.split():
-      #   if len(name_token) >= 2 and name_token[0] == '#':
-      #     r.labels.append(name_token[1:])
-      # if r.labels:
-      #   name = r.name
-      #   for l in r.labels:
-      #     name.replace(f' #{l}', '')
-      #   r.name = name
-      # route_map.add_route(r, static=True)
 
   route_map.fit_bounds()
 
