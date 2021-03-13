@@ -119,6 +119,16 @@ def stats():
   route_map.stats(request.form['label_name'])  
   return maybe_return_js_code()
 
+@map_app.route('/enable_highlight', methods=['POST'])
+def enable_highlight():
+  route_map.enable_highlight(request.form['label_name'])  
+  return maybe_return_js_code()
+
+@map_app.route('/disable_highlight', methods=['POST'])
+def disable_highlight():
+  route_map.enable_highlight('')  
+  return maybe_return_js_code()
+
 @map_app.route('/wayback', methods=['POST'])
 def wayback():
   route_map.wayback()  
@@ -167,6 +177,7 @@ def upload_route():
     import_route(r)
     print(r.name)
   return maybe_return_js_code()
+
 
 
 markers_visible = True

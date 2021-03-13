@@ -198,14 +198,30 @@ class RouteMap:
     If static = True, adds the nodes to the map directly instead
     of to the JS code var.
     """
+    # Look for duplicates.
+    for r in self._route_dict.values():
+      if r.name != route.name: continue
+      if len(r.points) != len(route.points): continue
+      different = False
+      for p1, p2 in zip(r.points, route.points):
+        l1, l2 = tuple(gpxpy.geo.Location(p.lat, p.lng) for p in [p1, p2])
+        if l1.distance_2d(l2) > 0.1:
+          different = True
+          break
+      if not different:
+        print(f"Found duplicate route: {r.name} with {len(r.points)} points, ignoring.")
+        return
     route_nodes = create_route_nodes(route)
     name = route_nodes.polyline.get_name()
+    if not static:
+      print(f"adding {name}")
     self._route_dict[name] = route
     self._route_nodes_dict[name] = route_nodes
     if static:
       route_nodes.segment_node.add_to(self._map)
     else:
       self._js_commands += utils.render_nodes(route_nodes.segment_node, self._map)
+      self._js_commands += f"window.{name} = {name};"
     return name
   
   def fit_bounds(self):
@@ -217,8 +233,10 @@ class RouteMap:
 
   def remove_route(self, route_name):
     print('remove ', route_name)
-    segment_node = self._route_nodes_dict[route_name].segment_node
-    self._js_commands += f"{self._map.get_name()}.removeLayer({segment_node.get_name()});\n"
+    route = self._route_nodes_dict[route_name]
+    self._js_commands += f"""
+{self._map.get_name()}.removeLayer({route.segment_node.get_name()});
+"""
     del self._route_dict[route_name]
     del self._route_nodes_dict[route_name]
 
@@ -238,12 +256,12 @@ class RouteMap:
       if label not in r.labels:
         route_labels.add(label)
     r.labels = sorted(list(route_labels))
-    if "primary" in r.labels:
-      r.line_style.width = 4.5
-      self._js_commands += f"{route_name}.setStyle({{weight: {r.line_style.width}}});\n"
-    else:
-      r.line_style.width = 3.0
-      self._js_commands += f"{route_name}.setStyle({{weight: {r.line_style.width}}});\n"
+    # if "primary" in r.labels:
+    #   r.line_style.width = 4.5
+    #   self._js_commands += f"{route_name}.setStyle({{weight: {r.line_style.width}}});\n"
+    # else:
+    #   r.line_style.width = 3.0
+    #   self._js_commands += f"{route_name}.setStyle({{weight: {r.line_style.width}}});\n"
     
 
   def remove_label(self, route_name, labels):
@@ -254,12 +272,12 @@ class RouteMap:
       if label in route_labels:
         route_labels.remove(label)
     r.labels = sorted(list(route_labels))
-    if "primary" in r.labels:
-      r.line_style.width = 4.5
-      self._js_commands += f"{route_name}.setStyle({{weight: {r.line_style.width}}});\n"
-    else:
-      r.line_style.width = 3.0
-      self._js_commands += f"{route_name}.setStyle({{weight: {r.line_style.width}}});\n"
+    # if "primary" in r.labels:
+    #   r.line_style.width = 4.5
+    #   self._js_commands += f"{route_name}.setStyle({{weight: {r.line_style.width}}});\n"
+    # else:
+    #   r.line_style.width = 3.0
+    #   self._js_commands += f"{route_name}.setStyle({{weight: {r.line_style.width}}});\n"
 
     
   def split_route(self, route_name, latlng):
@@ -416,6 +434,22 @@ var popup = L.popup()
     .openOn({self._map.get_name()});
 """
     return
+
+
+  def enable_highlight(self, labels):
+    labels = [l.strip() for l in labels.split(',') if l.strip() != '']
+    stats_dict = {}  # (length_m, num_segments)
+    for route_name, r in self._route_dict.items():
+      all_labels_match = True
+      for label in labels:
+        if label not in r.labels:
+          all_labels_match = False
+      if all_labels_match:
+        self._js_commands += f"""{route_name}.setStyle({{weight: {r.line_style.width}, opacity: 1.0, dashArray: ''}});"""
+      else:
+        self._js_commands += f"""{route_name}.setStyle({{weight: {r.line_style.width * 0.5}, opacity: 0.8, dashArray: '10px'}});"""
+    return
+
 
   def save(self, filename, selected_labels_str=''):
     # if os.path.exists(filename):
