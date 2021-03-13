@@ -400,9 +400,8 @@ bounds = {self._map.get_name()}.getBounds();
 window.open("https://livingatlas.arcgis.com/wayback/?ext="+bounds.getWest()+","+bounds.getNorth()+","+bounds.getEast()+","+bounds.getSouth());
 """
 
-
-  def stats(self, labels):
-    labels = [l.strip() for l in labels.split(',')]
+  def compute_stats(self, labels):
+    labels = [l.strip() for l in labels.split(',') if l.strip() != '']
     stats_dict = {}  # (length_m, num_segments)
     for r in self._route_dict.values():
       all_labels_match = True
@@ -417,6 +416,26 @@ window.open("https://livingatlas.arcgis.com/wayback/?ext="+bounds.getWest()+","+
         stats_dict[activity] =  (current_stats[0] + r.length(), current_stats[1] + 1)
         current_stats = stats_dict.get('total', (0.0, 0))
         stats_dict['total'] =  (current_stats[0] + r.length(), current_stats[1] + 1)
+    return stats_dict
+
+
+  def stats(self, labels):
+    stats_dict = self.compute_stats(labels)
+    # labels = [l.strip() for l in labels.split(',') if l.strip() != '']
+    # stats_dict = {}  # (length_m, num_segments)
+    # for r in self._route_dict.values():
+    #   all_labels_match = True
+    #   for label in labels:
+    #     if label not in r.labels:
+    #       all_labels_match = False
+    #   if all_labels_match:
+    #     print(r.activity_type, len(r.activity_type))
+    #     activity = r.activity_type if len(r.activity_type) > 0 else 'unknown'
+    #     print(activity)
+    #     current_stats = stats_dict.get(activity, (0.0, 0))
+    #     stats_dict[activity] =  (current_stats[0] + r.length(), current_stats[1] + 1)
+    #     current_stats = stats_dict.get('total', (0.0, 0))
+    #     stats_dict['total'] =  (current_stats[0] + r.length(), current_stats[1] + 1)
     summary_str = ''
     activities = ['total', 'trail', 'offtrail', 'bush', 'road', 'paddle', 'crossing', 'float', 'unknown']
     for activity in activities:

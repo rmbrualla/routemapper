@@ -8,7 +8,7 @@ import gpxpy
 import types
 import copy
 from branca.element import MacroElement, Template, Element, Figure
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, make_response
 import folium
 import json
 from absl import app
@@ -150,6 +150,25 @@ def commit():
   cmd = f"git reset; git add {FLAGS.input_kml}; git commit -m \"[track update] {request.form['message']}\""
   os.system(cmd)
   return maybe_return_js_code()
+
+@map_app.route('/all_stats', methods=['GET'])
+def all_stats():
+  num_subsections_per_section = [3, 3, 2, 4, 3, 5]
+  activities = ['total', 'trail', 'offtrail', 'bush', 'road', 'paddle', 'crossing', 'float', 'unknown']
+
+  csv_str = ",".join(["name"] + sum([[a + "_distance", a + "_segments"] for a in activities], [])) + "\n"
+  for section_index, num_subsections in enumerate(num_subsections_per_section):
+    for subsection_index in range(num_subsections):
+      label = f"s{section_index+1}{chr(ord('a') + subsection_index)}"
+      stats_dict = route_map.compute_stats(label)
+      stats_items = [stats_dict.get(act, (0.0, 0.0)) for act in activities]
+      stats_items_strs = sum([[f"{distance/1609.34:.2f}", f"{num_segments}"] 
+                             for distance, num_segments in stats_items],[])
+      csv_str += ",".join([label] + stats_items_strs) + "\n"
+  output = make_response(csv_str)
+  output.headers["Content-Disposition"] = "attachment; filename=section_stats.csv"
+  output.headers["Content-type"] = "text/csv"
+  return output
 
 @map_app.route('/push', methods=['POST'])
 def push():
