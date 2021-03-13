@@ -222,6 +222,11 @@ class RouteMap:
     else:
       self._js_commands += utils.render_nodes(route_nodes.segment_node, self._map)
       self._js_commands += f"window.{name} = {name};"
+      for node in route_nodes.start_marker_nodes:
+        self._js_commands += f"window.{node.get_name()} = {node.get_name()};"
+      for node in route_nodes.end_marker_nodes:
+        self._js_commands += f"window.{node.get_name()} = {node.get_name()};"
+
     return name
   
   def fit_bounds(self):
@@ -321,6 +326,10 @@ current_route_name = "{route_name}";
 
   def end_edit_route(self, route_name, latlngs):
     self._route_dict[route_name].points = [LatLng(p['lat'], p['lng']) for p in latlngs]
+    for node in self._route_nodes_dict[route_name].start_marker_nodes:
+      self._js_commands += f"""{node.get_name()}.setLatLng({latlngs[0]});\n"""
+    for node in self._route_nodes_dict[route_name].end_marker_nodes:
+      self._js_commands += f"""{node.get_name()}.setLatLng({latlngs[-1]});\n"""
     return
 
 
