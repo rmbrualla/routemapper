@@ -151,6 +151,13 @@ def commit():
   os.system(cmd)
   return maybe_return_js_code()
 
+@map_app.route('/force_commit', methods=['GET'])
+def force_commit():
+  route_map.save(FLAGS.input_kml)
+  cmd = f"git reset; git add {FLAGS.input_kml}; git commit -m \"[track update] forced commit.\""
+  os.system(cmd)
+  return maybe_return_js_code()
+
 @map_app.route('/all_stats', methods=['GET'])
 def all_stats():
   num_subsections_per_section = [3, 3, 2, 4, 3, 5]
