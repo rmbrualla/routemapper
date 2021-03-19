@@ -153,6 +153,7 @@ def commit():
 
 @map_app.route('/force_commit', methods=['GET'])
 def force_commit():
+  print('saving')
   route_map.save(FLAGS.input_kml)
   cmd = f"git reset; git add {FLAGS.input_kml}; git commit -m \"[track update] forced commit.\""
   os.system(cmd)
@@ -237,6 +238,7 @@ def import_route(r, static=False):
   route_map.add_route(r, static=static)
 
 def reload_data():
+  print('reload_data')
   global route_map
   route_map = route.RouteMap()
   if FLAGS.input_gpx:
