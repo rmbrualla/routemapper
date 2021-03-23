@@ -479,7 +479,7 @@ var popup = L.popup()
     return
 
 
-  def save(self, filename, selected_labels_str='', no_names=False):
+  def save(self, filename, selected_labels_str='', no_names=False, max_width=-1):
     # if os.path.exists(filename):
     #   pass
       # self._js_commands += f"alert('File {filename} already exists, change filename.');"
@@ -504,7 +504,10 @@ var popup = L.popup()
       name = r.name + ' #'.join([''] + list(r.labels)) if not no_names else ''
       line = kml.newlinestring(name=name, coords=coords, description=r.description)
       line.style.linestyle.color =  _color_to_kml_color(r.line_style.color) 
-      line.style.linestyle.width = r.line_style.width
+      width = r.line_style.width
+      if max_width > 0:
+        width = min(width, max_width)
+      line.style.linestyle.width = width
       num_tracks += 1
     print(f'Saving kml file with {num_tracks} tracks.')
     kml.save(filename)

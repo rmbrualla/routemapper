@@ -183,9 +183,11 @@ def all_stats():
 def export_no_names():
   
   labels_str=request.args.get('labels', '')
+  width=int(request.args.get('width', '-1'))
+  
   with tempfile.TemporaryDirectory() as tmp_dir:
     fpath = os.path.join(tmp_dir, 'export_no_names.kml')
-    route_map.save(fpath, labels_str, no_names=True)
+    route_map.save(fpath, labels_str, no_names=True, max_width=width)
     with open(fpath, 'r') as f:
       contents = f.read()
 
