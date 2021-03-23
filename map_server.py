@@ -24,6 +24,7 @@ FLAGS = flags.FLAGS
 
 flags.DEFINE_string('input_gpx', None, 'Input gpx filename.')
 flags.DEFINE_string('input_kml', None, 'Input kml filename.')
+flags.DEFINE_integer('map_height', 600, 'Map height in pixels.')
 
 def load_gpx(gpx_file):
   with open(gpx_file) as f:
@@ -31,8 +32,7 @@ def load_gpx(gpx_file):
 
 map_app = Flask(__name__)
 
-route_map = route.RouteMap()
-
+route_map = None
 
 def maybe_return_js_code():
   ret_dict = {'status':'OK'}  
@@ -240,7 +240,7 @@ def import_route(r, static=False):
 def reload_data():
   print('reload_data')
   global route_map
-  route_map = route.RouteMap()
+  route_map = route.RouteMap(height=FLAGS.map_height)
   if FLAGS.input_gpx:
     gpx = load_gpx(FLAGS.input_gpx)
     for r in gpx.routes:
