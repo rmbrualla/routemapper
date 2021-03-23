@@ -398,9 +398,9 @@ $("#popup-edit").on("click", function(e) {{
     r = self._route_dict[route_name]
     r.name = html.unescape(name)
     r.description = html.unescape(description)
-    print("\"" + r.description + "\"")
+    # print("\"" + r.description + "\"")
     r.labels = [l.strip()[1:] for l in labels.split(',')]
-    print(route_name, name, description, labels)
+    # print(route_name, name, description, labels)
     return
 
   def wayback(self):
@@ -418,9 +418,9 @@ window.open("https://livingatlas.arcgis.com/wayback/?ext="+bounds.getWest()+","+
         if label not in r.labels:
           all_labels_match = False
       if all_labels_match:
-        print(r.activity_type, len(r.activity_type))
+        # print(r.activity_type, len(r.activity_type))
         activity = r.activity_type if len(r.activity_type) > 0 else 'unknown'
-        print(activity)
+        # print(activity)
         current_stats = stats_dict.get(activity, (0.0, 0))
         stats_dict[activity] =  (current_stats[0] + r.length(), current_stats[1] + 1)
         current_stats = stats_dict.get('total', (0.0, 0))
@@ -479,7 +479,7 @@ var popup = L.popup()
     return
 
 
-  def save(self, filename, selected_labels_str=''):
+  def save(self, filename, selected_labels_str='', no_names=False):
     # if os.path.exists(filename):
     #   pass
       # self._js_commands += f"alert('File {filename} already exists, change filename.');"
@@ -489,6 +489,7 @@ var popup = L.popup()
       return labels
     selected_labels = label_str_to_labels(selected_labels_str)
 
+    num_tracks = 0
     def _color_to_kml_color(color):
       return f'#ff{color[-2:]}{color[2:4]}{color[0:2]}'
     kml = simplekml.Kml()
@@ -500,9 +501,11 @@ var popup = L.popup()
       if skip:
         continue
       coords = [(c[1], c[0]) for c in r.points_as_list()]
-      name = r.name + ' #'.join([''] + list(r.labels))
+      name = r.name + ' #'.join([''] + list(r.labels)) if not no_names else ''
       line = kml.newlinestring(name=name, coords=coords, description=r.description)
       line.style.linestyle.color =  _color_to_kml_color(r.line_style.color) 
       line.style.linestyle.width = r.line_style.width
+      num_tracks += 1
+    print(f'Saving kml file with {num_tracks} tracks.')
     kml.save(filename)
 

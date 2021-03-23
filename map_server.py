@@ -178,6 +178,23 @@ def all_stats():
   output.headers["Content-type"] = "text/csv"
   return output
 
+
+@map_app.route('/export_no_names', methods=['GET'])
+def export_no_names():
+  
+  labels_str=request.args.get('labels', '')
+  with tempfile.TemporaryDirectory() as tmp_dir:
+    fpath = os.path.join(tmp_dir, 'export_no_names.kml')
+    route_map.save(fpath, labels_str, no_names=True)
+    with open(fpath, 'r') as f:
+      contents = f.read()
+
+  output = make_response(contents)
+  output.headers["Content-Disposition"] = "attachment; filename=export_no_names.kml"
+  output.headers["Content-type"] = "text/kml"
+  return output
+
+
 @map_app.route('/push', methods=['POST'])
 def push():
   cmd = f"git push"
@@ -235,6 +252,11 @@ def import_route(r, static=False):
     for l in r.labels:
       name = name.replace(f' #{l}', '')
     r.name = name
+  while True:
+    if len(r.name) >= 2 and r.name[-1] == r.name[-2]:
+      r.name = r.name[:-1]
+    else:
+      break
   route_map.add_route(r, static=static)
 
 def reload_data():
