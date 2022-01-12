@@ -1,1 +1,1 @@
-web: python map_server.py -input_kml alaska.kml
+web: python map_server.py -input_kml alaska.kml -git_controls false

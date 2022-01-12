@@ -8,7 +8,7 @@ import gpxpy
 import types
 import copy
 from branca.element import MacroElement, Template, Element, Figure
-from flask import Flask, render_template, request, jsonify, make_response
+from flask import Flask, render_template, request, jsonify, make_response, send_file
 import folium
 import json
 from absl import app
@@ -27,6 +27,7 @@ flags.DEFINE_string('input_kml', None, 'Input kml filename.')
 flags.DEFINE_string('map_height', "600", 'Map height in pixels or percentage string.')
 flags.DEFINE_string('map_width', "100%", 'Map width in pixels or percentage string.')
 flags.DEFINE_string('output_map_html', None, 'Output html file containing map iframe html.')
+flags.DEFINE_boolean('git_controls', True, 'Whether to use git controls.')
 
 def load_gpx(gpx_file):
   with open(gpx_file) as f:
@@ -47,7 +48,7 @@ def maybe_return_js_code():
 @map_app.route('/')
 def index():
   reload_data()
-  return render_template('index.html')
+  return render_template('index.html', git_controls=FLAGS.git_controls)
 
 @map_app.route('/label', methods=['POST'])
 def label():
@@ -86,6 +87,13 @@ def end_create_route():
 def save():
   route_map.save(request.form['filename'], request.form['label_name'])
   return maybe_return_js_code()
+
+@map_app.route('/download', methods=['POST'])
+def download():
+  with tempfile.TemporaryDirectory() as tmp_dir:
+    path = os.path.join(tmp_dir, 'track.kml') 
+    route_map.save(path)
+    return send_file(path, as_attachment=True)
 
 @map_app.route('/info', methods=['POST'])
 def info():
@@ -285,12 +293,13 @@ def reload_data():
             points=[route.LatLng(p.latitude, p.longitude) for p in s.points]), static=True)
         break
       break
+    route_map.fit_bounds()
   elif FLAGS.input_kml:
     routes = kml_parser.parse_kml(FLAGS.input_kml)
     for r in routes:
       import_route(route_map, r, static=True)
 
-  route_map.fit_bounds()
+    route_map.fit_bounds()
 
   html = route_map.map()._repr_html_()
   html = html.replace(';padding-bottom:60%', '', 1)
@@ -332,8 +341,6 @@ def generate_map(markers=True):
   html = html.replace(';height:0', f';height:{FLAGS.map_height}px', 1)
   html = html.replace('data-html=', 'data-html="')
   html = html.replace(' onload=', '" onload=')
-
-  print(html[:200])
 
   with open(FLAGS.output_map_html, 'w') as f:
     f.write(html) 

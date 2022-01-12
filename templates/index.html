@@ -50,6 +50,7 @@
         <input type="radio" id="disable_highlight" name="action" value="disable_highlight" class="button">
         <label for="disable_highlight"><strike>HIGHLIGHT</strike></label>
         <div style="width: 10px; display:inline-block;"></div>
+        {% if git_controls %}
         <input type="text" id="message" name="message" value="Commit description" size=40>
         <input type="radio" id="commit" name="action" value="commit" class="button">
         <label for="commit">COMMIT</label>
@@ -58,9 +59,11 @@
         <input type="radio" id="pull" name="action" value="pull" class="button">
         <label for="pull">PULL</label>
         <div style="width: 10px; display:inline-block;"></div>
-        <input type="text" id="filename" name="filename" value="alaska_v2.kml" size=13>
-        <input type="radio" id="save" name="action" value="save" class="button">
-        <label for="save">SAVE</label>
+        {% endif %}
+        <!-- <input type="text" id="filename" name="filename" value="alaska_v2.kml" size=13>
+        <input type="radio" id="save" name="action" value="save" class="button"> -->
+        <input type="radio" id="download" name="action" value="download" class="button">
+        <label for="download">DOWNLOAD</label>
         <div style="width: 10px; display:inline-block;"></div>
         <input type="radio" id="wayback" name="action" value="wayback" class="button">
         <label for="wayback">WAYBACK</label>
@@ -83,18 +86,27 @@ $("input.button").change(function() {
     console.log($('form').serialize());
     $(this).prop('checked', true)
     input_radio = $(this)
-
+    console.log(input_radio[0].id)
     $.ajax({
         url: '/' + this.id,
         data: $('form').serialize(),
         type: 'POST',
-        success: function(response){
-          console.log(response);
-          response_dict = JSON.parse(response);
-          if ("js_code" in response_dict) {
-            evalInScope(response_dict["js_code"], $('iframe')[0].contentWindow);
+        success: function(response){ console.log('here');           console.log(response);
+
+          if (input_radio[0].id == "download") {
+            var blob = new Blob([(new XMLSerializer()).serializeToString(response)], {type: 'text/xml'});
+            var link=document.createElement('a');
+            link.href=window.URL.createObjectURL(blob);
+            link.download='track.kml';
+            link.click();
+          } else {
+            console.log(response);
+            response_dict = JSON.parse(response);
+            if ("js_code" in response_dict) {
+              evalInScope(response_dict["js_code"], $('iframe')[0].contentWindow);
+            }
+            input_radio.prop('checked', false);
           }
-          input_radio.prop('checked', false)  
         },
         error: function(error){
           console.log(error);
