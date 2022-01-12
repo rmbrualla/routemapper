@@ -24,7 +24,9 @@ FLAGS = flags.FLAGS
 
 flags.DEFINE_string('input_gpx', None, 'Input gpx filename.')
 flags.DEFINE_string('input_kml', None, 'Input kml filename.')
-flags.DEFINE_integer('map_height', 600, 'Map height in pixels.')
+flags.DEFINE_string('map_height', "600", 'Map height in pixels or percentage string.')
+flags.DEFINE_string('map_width', "100%", 'Map width in pixels or percentage string.')
+flags.DEFINE_string('output_map_html', None, 'Output html file containing map iframe html.')
 
 def load_gpx(gpx_file):
   with open(gpx_file) as f:
@@ -220,7 +222,7 @@ def upload_route():
     imported_routes = kml_parser.parse_kml(kml_path)
 
   for r in imported_routes:
-    import_route(r)
+    import_route(route_map, r)
     print(r.name)
   return maybe_return_js_code()
 
@@ -237,7 +239,7 @@ $("path[fill!=\\"none\\"]").attr('visibility', '{visibility_str}');
 """
   return maybe_return_js_code()
 
-def import_route(r, static=False):
+def import_route(route_map, r, static=False, markers=True):
   r = r.simplify(1.0)
   r.line_style.width = max(r.line_style.width, 5.0)
   for activity_type, color in route.activity_color.items():
@@ -259,12 +261,12 @@ def import_route(r, static=False):
       r.name = r.name[:-1]
     else:
       break
-  route_map.add_route(r, static=static)
+  route_map.add_route(r, static=static, markers=markers)
 
 def reload_data():
   print('reload_data')
   global route_map
-  route_map = route.RouteMap(height=FLAGS.map_height)
+  route_map = route.RouteMap(width=FLAGS.map_width, height=FLAGS.map_height)
   if FLAGS.input_gpx:
     gpx = load_gpx(FLAGS.input_gpx)
     for r in gpx.routes:
@@ -286,16 +288,64 @@ def reload_data():
   elif FLAGS.input_kml:
     routes = kml_parser.parse_kml(FLAGS.input_kml)
     for r in routes:
-      import_route(r, static=True)
+      import_route(route_map, r, static=True)
 
   route_map.fit_bounds()
 
+  html = route_map.map()._repr_html_()
+  html = html.replace(';padding-bottom:60%', '', 1)
+  html = html.replace(';height:0', f';height:{FLAGS.map_height}px', 1)
+  print(html[:200])
+
   with open('templates/map.html', 'w') as f:
-    f.write(route_map.map()._repr_html_()) 
+    f.write(html) 
+    
+def generate_map(markers=True):
+  route_map = route.RouteMap(width=FLAGS.map_width, height=FLAGS.map_height, edit_pane=False)
+  if FLAGS.input_gpx:
+    gpx = load_gpx(FLAGS.input_gpx)
+    for r in gpx.routes:
+      route_map.add_route(route.Route(
+          name=r.name,
+          points=[route.LatLng(p.latitude, p.longitude) for p in r.points]), static=True)
+      break
+    for t in gpx.tracks:
+      break
+      for i, s in enumerate(t.segments):
+        name = t.name
+        if len(t.segments) > 1:
+          name += f'_{i}'
+        route_map.add_route(route.Route(
+            name=name,
+            points=[route.LatLng(p.latitude, p.longitude) for p in s.points]), static=True)
+        break
+      break
+  elif FLAGS.input_kml:
+    routes = kml_parser.parse_kml(FLAGS.input_kml)
+    for r in routes:
+      import_route(route_map, r, static=True, markers=markers)
+
+  route_map.fit_bounds()
+
+  html = route_map.map()._repr_html_()
+  html = html.replace(';padding-bottom:60%', '', 1)
+  html = html.replace(';height:0', f';height:{FLAGS.map_height}px', 1)
+  html = html.replace('data-html=', 'data-html="')
+  html = html.replace(' onload=', '" onload=')
+
+  print(html[:200])
+
+  with open(FLAGS.output_map_html, 'w') as f:
+    f.write(html) 
+
 
 def main(argv):
+  if FLAGS.output_map_html:
+    print('here')
+    generate_map(markers=False)
+    return
   reload_data()
-  map_app.run(debug=True)
+  map_app.run(debug=True, host="0.0.0.0", port=os.environ.get("PORT", 5000))
 
 
 if __name__ == '__main__':
