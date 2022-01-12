@@ -72,7 +72,7 @@ class Route:
     r.points = [LatLng(l.latitude, l.longitude) for l in new_locs]
     return r
 
-def create_route_nodes(r: Route):
+def create_route_nodes(r: Route, markers=True):
   points = r.points_as_list()
   segment_node = folium.FeatureGroup(name="segment", control=False)
   polyline = folium.PolyLine(points, color=f'#{r.line_style.color}', weight=max(r.line_style.width, 3.0), opacity=1.0, bubbling_mouse_events=False).add_to(segment_node)
@@ -107,20 +107,21 @@ $.ajax({
 
   start_marker_nodes = []
   end_marker_nodes = []
+  
+  if markers:
+    end_marker_nodes.append(folium.vector_layers.CircleMarker(
+        location=points[-1], radius=9, color='white', weight=1,
+        fill_color='red', fill_opacity=1, classNaMe="marker").add_to(segment_node))
+    end_marker_nodes.append(folium.RegularPolygonMarker(
+        location=points[-1], fill_color='white', fill_opacity=1, color='white', 
+        number_of_sides=4, radius=3, rotation=45, classNaMe="marker").add_to(segment_node))
 
-  end_marker_nodes.append(folium.vector_layers.CircleMarker(
-      location=points[-1], radius=9, color='white', weight=1,
-      fill_color='red', fill_opacity=1, classNaMe="marker").add_to(segment_node))
-  end_marker_nodes.append(folium.RegularPolygonMarker(
-      location=points[-1], fill_color='white', fill_opacity=1, color='white', 
-      number_of_sides=4, radius=3, rotation=45, classNaMe="marker").add_to(segment_node))
-
-  start_marker_nodes.append(folium.vector_layers.CircleMarker(
-    location=points[0], radius=9, color='white',
-    weight=1, fill_color='green', fill_opacity=1, classNaMe="marker").add_to(segment_node))
-  start_marker_nodes.append(folium.RegularPolygonMarker(
-    location=points[0], fill_color='white', fill_opacity=1, 
-    color='white', number_of_sides=3, radius=3, rotation=0, classNaMe="marker").add_to(segment_node))
+    start_marker_nodes.append(folium.vector_layers.CircleMarker(
+      location=points[0], radius=9, color='white',
+      weight=1, fill_color='green', fill_opacity=1, classNaMe="marker").add_to(segment_node))
+    start_marker_nodes.append(folium.RegularPolygonMarker(
+      location=points[0], fill_color='white', fill_opacity=1, 
+      color='white', number_of_sides=3, radius=3, rotation=0, classNaMe="marker").add_to(segment_node))
   return types.SimpleNamespace(segment_node=segment_node,
                                polyline=polyline,
                                end_marker_nodes=end_marker_nodes,
@@ -137,35 +138,44 @@ activity_color = {
   "rapid": "F42410",
 }
 
+def _size_value(value):
+  if value[-1] == '%':
+    return value
+  else:
+    return int(value)
+
 
 class RouteMap:
     
-  def __init__(self, height=600):
+  def __init__(self, width="100%", height="600", edit_pane=True):
     self._route_dict = {}
     self._route_nodes_dict = {}
     self._js_commands = ''
-    self._create_map(height=height)
+    self._create_map(width, height, edit_pane)
     
-  def _create_map(self, height):
-    self._map = folium.Map(tiles=None, zoom_control=False, width="100%", height=height,control_scale = True, zoomDelta=0.1)
+    
+  def _create_map(self, width, height, edit_pane):
+    self._map = folium.Map(tiles=None, zoom_control=False, width=_size_value(width), height=_size_value(height),control_scale = True, zoomDelta=0.1)
     # self._map.default_js.append(("draw", "https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"))
     # self._map.default_css.append(("draw", "https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"))
     folium.TileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', attr='ArcGIS', name='World_Imagery').add_to(self._map)
-    folium.TileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', attr='ESRI', name="ESRI Topo").add_to(self._map)
-    folium.TileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', attr='OpenTopo', name="OpenTopo").add_to(self._map)
-    folium.TileLayer('https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}', attr='USGS', name="USGS Topo").add_to(self._map)
-    folium.TileLayer('http://caltopo.s3.amazonaws.com/topo/{z}/{x}/{y}.png?v=1', attr='Caltopo', name="CaltopoFS").add_to(self._map)
+    if edit_pane:
+      folium.TileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', attr='ESRI', name="ESRI Topo").add_to(self._map)
+      folium.TileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', attr='OpenTopo', name="OpenTopo").add_to(self._map)
+      folium.TileLayer('https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}', attr='USGS', name="USGS Topo").add_to(self._map)
+      folium.TileLayer('http://caltopo.s3.amazonaws.com/topo/{z}/{x}/{y}.png?v=1', attr='Caltopo', name="CaltopoFS").add_to(self._map)
 
 
     # folium.TileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', attr='ArcGIS', name='Topo Map').add_to(self._map)
-
-    folium.LayerControl(collapsed=False).add_to(self._map)
-    self._draw = my_draw.Draw(
-        export=False,
-          position='topleft',
-         draw_options={'polyline': {'allowIntersection': True}, 'polygon': False, 'rectangle': False, 'circle': False, 'circlemarker': False},
-         edit_options={'poly': {'allowIntersection': True}}
-    ).add_to(self._map)
+    if edit_pane:
+      folium.LayerControl(collapsed=False).add_to(self._map)
+    if edit_pane:
+      self._draw = my_draw.Draw(
+          export=False,
+            position='topleft',
+          draw_options={'polyline': {'allowIntersection': True}, 'polygon': False, 'rectangle': False, 'circle': False, 'circlemarker': False},
+          edit_options={'poly': {'allowIntersection': True}}
+      ).add_to(self._map)
 #     utils.JavaScript(
 # f"""
 # // Initialise the FeatureGroup to store editable layers
@@ -192,7 +202,7 @@ class RouteMap:
 # """).add_to(self._map)
 
     
-  def add_route(self, route: Route, static=False):
+  def add_route(self, route: Route, static=False, markers=True):
     """Add route.
     
     If static = True, adds the nodes to the map directly instead
@@ -211,7 +221,7 @@ class RouteMap:
       if not different:
         print(f"Found duplicate route: {r.name} with {len(r.points)} points, ignoring.")
         return
-    route_nodes = create_route_nodes(route)
+    route_nodes = create_route_nodes(route, markers=markers)
     name = route_nodes.polyline.get_name()
     if not static:
       print(f"adding {name}")
@@ -411,6 +421,7 @@ window.open("https://livingatlas.arcgis.com/wayback/?ext="+bounds.getWest()+","+
 
   def compute_stats(self, labels):
     labels = [l.strip() for l in labels.split(',') if l.strip() != '']
+    print(labels)
     stats_dict = {}  # (length_m, num_segments)
     for r in self._route_dict.values():
       all_labels_match = True
@@ -447,10 +458,12 @@ window.open("https://livingatlas.arcgis.com/wayback/?ext="+bounds.getWest()+","+
     #     stats_dict['total'] =  (current_stats[0] + r.length(), current_stats[1] + 1)
     summary_str = ''
     activities = ['total', 'trail', 'offtrail', 'bush', 'road', 'paddle', 'crossing', 'float', 'unknown']
+
     for activity in activities:
       if activity not in stats_dict: continue
       length_m, num_segments = stats_dict[activity]
       summary_str += f"<b>{html.escape(activity)}</b>: {length_m/1000.0:.1f} km / {length_m*0.000621371:.1f} mi / {num_segments} segments <br>"
+    labels = [l.strip() for l in labels.split(',') if l.strip() != '']
     labels_str = ' '.join(f'#{l}' for l in labels)
     self._js_commands += f"""
 map = {self._map.get_name()};
